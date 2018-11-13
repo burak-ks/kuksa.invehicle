@@ -2,7 +2,7 @@
 #define DBMANAGER_H
 
 #include <iostream>
-#include <sqlite3/sqlite3.h>
+#include <sqlite3.h>
 #include <sstream>
 #include <vector>
 #include <jsoncons/json.hpp>
