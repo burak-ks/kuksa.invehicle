@@ -49,9 +49,11 @@ message(STATUS " boost libs ${Boost_LIBRARIES} ")
 
 #openssl
 find_package(OpenSSL REQUIRED)
-target_link_libraries(simple-websocket-server INTERFACE ${OPENSSL_LIBRARIES})
+target_link_libraries(simple-websocket-server INTERFACE ${OPENSSL_LIBRARIES}) 
 target_include_directories(simple-websocket-server INTERFACE ${OPENSSL_INCLUDE_DIR})
 message(STATUS " openssl libraries ${OPENSSL_LIBRARIES}")
+
+
 
 file(GLOB_RECURSE SRC_FILES
 ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
@@ -61,10 +63,15 @@ if(NOT BUILD_EXE)
    add_library(${PROJECT_NAME} ${SRC_FILES})
 else() 
    add_executable(${PROJECT_NAME} ${SRC_FILES})
+
+#find sqlite3
+include_directories(/usr/include)
+#link_directories(/usr/lib)
+target_link_libraries(${PROJECT_NAME} sqlite3)
+
 endif(NOT BUILD_EXE)
 target_link_libraries(${PROJECT_NAME}  simple-websocket-server)
-
-if(BUILD_TEST_CLIENT)
+if(BUILD_TEST_CLIENT)   
    add_executable(testclient ${CMAKE_CURRENT_SOURCE_DIR}/test/testclient.cpp)
    target_link_libraries(testclient  simple-websocket-server)
    target_include_directories(testclient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/jsoncons)
