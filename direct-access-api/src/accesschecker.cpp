@@ -12,19 +12,18 @@
  * *****************************************************************************
  */
 
-#include"accesschecker.hpp"
+#include "accesschecker.hpp"
 
-accesschecker::accesschecker(class  authenticator* vdator) {
-   tokenValidator = vdator;
+accesschecker::accesschecker(class authenticator* vdator) {
+  tokenValidator = vdator;
 }
 
-bool accesschecker::checkAccess(class wschannel& channel , string path) {
- 
-   if (channel.isAuthorized() ) {
-       return tokenValidator->isStillValid (channel); 
-   } else {
-       return false;
-   }
+bool accesschecker::checkAccess(class wschannel& channel, string path) {
+  if (channel.isAuthorized()) {
+    return tokenValidator->isStillValid(channel);
+  } else {
+    return false;
+  }
 
-   return true;
-} 
+  return true;
+}
