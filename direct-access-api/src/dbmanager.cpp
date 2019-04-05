@@ -23,7 +23,7 @@ void dbmanager::insert_into_read_table(string vcan_name, int canid) {
     cout << "SQL error: " << sqlite3_errmsg(db) << endl;
     sqlite3_free(zErrMsg);
   } else {
-    cout << "SQL: insert_into_vcan_table successful" << endl;
+    cout << "SQL: insert_into_read_table successful" << endl;
   }
 }
 
@@ -38,7 +38,7 @@ void dbmanager::insert_into_write_table(string vcan_name, int canid) {
     cout << "SQL error: " << sqlite3_errmsg(db) << endl;
     sqlite3_free(zErrMsg);
   } else {
-    cout << "SQL: insert_into_vcan_table successful" << endl;
+    cout << "SQL: insert_into_write_table successful" << endl;
   }
 }
 
@@ -205,4 +205,54 @@ void dbmanager::store_write_rules(string vcan_name, json can_json) {
   for (auto r : perms) {
     this->insert_into_write_table(vcan_name, stoi(r));
   }
+}
+
+int maintest() {
+  dbmanager db;
+
+  string vcan_name = "vcan0";
+  int canid = 1;
+  vector<string> vcan_list;
+  vector<int> read_list;
+  vector<int> write_list;
+
+  /*
+    db.insert_into_read_table(vcan_name, 2);
+    db.insert_into_write_table(vcan_name, 2);
+    db.insert_into_read_table(vcan_name, 3);
+    db.insert_into_write_table(vcan_name, 3);
+    db.insert_into_read_table(vcan_name, 4);
+  */
+
+  vcan_list = db.get_vcan_names();
+
+  for (string vcan : vcan_list) {
+    cout << "vcan: " << vcan << endl;
+  }
+
+  read_list = db.get_read_rules(vcan_name);
+
+  for (int r : read_list) {
+    cout << "read: " << r << endl;
+  }
+
+  write_list = db.get_write_rules(vcan_name);
+
+  for (int w : write_list) {
+    cout << "write: " << w << endl;
+  }
+
+
+  vcan_list = db.select_vcans_from_read_table(canid);
+
+  for (string vcan : vcan_list) {
+    cout << "vcanr: " << vcan << endl;
+  }
+  vcan_list = db.select_vcans_from_write_table(canid);
+  for (string vcan : vcan_list) {
+    cout << "vcanw: " << vcan << endl;
+  }
+
+  db.delete_vcan(vcan_name);
+
 }

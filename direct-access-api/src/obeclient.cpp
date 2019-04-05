@@ -69,6 +69,8 @@ e_result obe_client_connect() {
 
 void *obe_listen(void *notused) {
   char buffer[BUFFER_SIZE] = {};
+
+  int counter = 1;
   while (1) {
     memset(&buffer, '\0', sizeof(buffer));
 
@@ -89,12 +91,14 @@ void *obe_listen(void *notused) {
       printf("Disconnected from daa_obe server \n");
       connection_status = -1;
     } else {
-      printf("daa_obe: %s\n", buffer);
+      // printf("daa_obe: %s\n", buffer);
 
       // handle msg
       parse_buffer(buffer);
 
       memset(&buffer, '\0', sizeof(buffer));
+
+      printf("inc: %i\n",  counter++);
     }
   }
 }
@@ -136,7 +140,7 @@ char *prepare_outgoing_msg(char *daa_msg, struct can_frame *frame) {
 
   strcat(daa_msg, "}");
 
-  printf("%s\n", daa_msg);
+  // printf("outgoing %s\n", daa_msg);
 
   return daa_msg;
 }
@@ -157,19 +161,20 @@ void handle_incoming_msg(char *daa_msg) {
   frame.data[5] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[6] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[7] = strtol(strsep(&tempstr, delimiter), NULL, 16);
-
-  printf("write to vcan:\n");
-
+  static int counter = 1;
+  printf("handle inc: %i\n", counter++);
   // check which vcans have read permissions
   dbmanager db;
   vector<string> vcan_list =
       db.select_vcans_from_read_table(frame.can_id & 0x1FFFFFFF);
   for (string vcan : vcan_list) {
     // write to vcan;
-    cout << "write to vcan: " << vcan << endl;
-    vcanlistener listener(vcan);
-    listener.vcan_socket_init();
-    listener.vcan_write_frame(&frame);
+    // cout << "write to vcan: " << vcan << endl;
+    // vcanlistener listener(vcan);
+    // listener.vcan_socket_init();
+    // listener.vcan_write_frame(&frame);
+
+    vcanwriter::vcan_write_frame("vcanh0", &frame);
   }
 }
 
@@ -202,11 +207,11 @@ void parse_buffer(char *msg) {
     if (eindex + 1 != strlen(msg))
       parse_buffer(&msg[eindex + 1]);
     else {
-      printf("...\n");
+      // printf("...\n");
       return;
     }
   } else {
-    printf("...\n");
+    // printf("...\n");
     return;
   }
 }
