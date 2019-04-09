@@ -27,7 +27,7 @@ e_result obe_client_init() {
   connection_status =
       connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
   if (connection_status < 0) {
-    printf("Failed to connect to server\n");
+    printf("Failed to connect to server %s\n", obe_server_ip);
     return FAILURE;
   }
   printf("Connected to server\n");
