@@ -2,7 +2,7 @@
 #include "common.hpp"
 
 int sockfd;
-const char *obe_server_ip = "192.168.3.40"; //"127.0.0.1";  //
+const char *obe_server_ip = "127.0.0.1";  //"192.168.3.40"; //
 int obe_port = 6789;
 int connection_status;
 
@@ -98,7 +98,7 @@ void *obe_listen(void *notused) {
 
       memset(&buffer, '\0', sizeof(buffer));
 
-      printf("inc: %i\n",  counter++);
+      printf("i %i\n",  counter++);
     }
   }
 }
@@ -162,7 +162,7 @@ void handle_incoming_msg(char *daa_msg) {
   frame.data[6] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[7] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   static int counter = 1;
-  printf("handle inc: %i\n", counter++);
+  //printf("handle inc: %i\n", counter++);
   // check which vcans have read permissions
   dbmanager db;
   vector<string> vcan_list =

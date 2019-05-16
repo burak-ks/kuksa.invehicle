@@ -273,13 +273,13 @@ int vcanwriter::get_connection(string vcan_name) {
 }
 
 void vcanwriter::vcan_write_frame(string vcan_name, struct can_frame *frame) {
-  static int counter = 0;
+  static int counter = 1;
   int can_sock = get_connection(vcan_name);
   if (write(can_sock, frame, sizeof(struct can_frame)) < 0)
     printf("Failed to write to vcan bus = %s \n", vcan_name.c_str());
   else {
     // printf("Frame sent to vcan bus = %s \n", vcan_name.c_str());
-    printf("written to vcan: %i\n", counter++);
+    printf("v %i\n", counter++);
   }
 }
 
