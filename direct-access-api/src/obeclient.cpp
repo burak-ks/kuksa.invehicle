@@ -98,7 +98,7 @@ void *obe_listen(void *notused) {
 
       memset(&buffer, '\0', sizeof(buffer));
 
-      printf("i %i\n",  counter++);
+      //printf("i %i\n",  counter++);
     }
   }
 }

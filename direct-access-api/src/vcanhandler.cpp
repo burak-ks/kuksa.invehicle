@@ -279,7 +279,7 @@ void vcanwriter::vcan_write_frame(string vcan_name, struct can_frame *frame) {
     printf("Failed to write to vcan bus = %s \n", vcan_name.c_str());
   else {
     // printf("Frame sent to vcan bus = %s \n", vcan_name.c_str());
-    printf("v %i\n", counter++);
+    //printf("v %i\n", counter++);
   }
 }
 
