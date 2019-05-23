@@ -225,4 +225,5 @@ int main(int argc, char *argv[]) {
   obe_client_init();
 
   getchar();
+  while(1);
 }
