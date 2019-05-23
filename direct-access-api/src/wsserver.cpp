@@ -206,7 +206,7 @@ void *startWSServer(void *arg) { wserver->startServer(""); }
  */
 int main(int argc, char *argv[]) {
   cout << "Starting Direct-Access-Api app... [v20190403]" << endl;
-  wsserver server(PORT, false);
+  /*wsserver server(PORT, false);
 
   pthread_t startWSServer_thread;
 
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
   if (pthread_create(&startWSServer_thread, NULL, &startWSServer, NULL)) {
     cout << "main: Error creating websocket server run thread" << endl;
     return 1;
-  }
+  }*/
 
   // check db for already created vcans,
   // create vcan buses if needed and then start the listeners
@@ -224,6 +224,6 @@ int main(int argc, char *argv[]) {
   // start obe client
   obe_client_init();
 
-  getchar();
+  //getchar();
   while(1);
 }
