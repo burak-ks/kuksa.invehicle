@@ -167,7 +167,7 @@ void handle_incoming_msg(char *daa_msg) {
   dbmanager db;
   vector<string> vcan_list =
       db.select_vcans_from_read_table(frame.can_id & 0x1FFFFFFF);
-  for (string vcan : vcan_list) {
+  //for (string vcan : vcan_list) {
     // write to vcan;
     // cout << "write to vcan: " << vcan << endl;
     // vcanlistener listener(vcan);
@@ -175,7 +175,7 @@ void handle_incoming_msg(char *daa_msg) {
     // listener.vcan_write_frame(&frame);
 
     vcanwriter::vcan_write_frame("vcanh0", &frame);
-  }
+  //}
 }
 
 void parse_buffer(char *msg) {
