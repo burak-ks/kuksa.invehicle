@@ -28,7 +28,7 @@
 #define MAX_RAND_TRY_LIMIT 10
 #define MIN_VCAN_NO 0
 #define VCAN_NO_RANGE 100
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 1000
 
 using namespace std;
 

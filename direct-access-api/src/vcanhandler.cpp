@@ -218,13 +218,14 @@ void vcanhandler::start_all_listeners() {
 
   // check if these vcan busses are created, if not create them
   // then start a listener thread for each
-  for (string vcan : vcan_list) {
+ /*/for (string vcan : vcan_list) {
     if (vcanExists(vcan) == false) {
       createVcan(vcan);
     }
     start_vcan_listener(vcan);
     sleep(1);
-  }
+  }*/
+  start_vcan_listener("vcana0");
 }
 
 vcanwriter::vcanwriter() {}
