@@ -2,7 +2,7 @@
 #include "common.hpp"
 
 int sockfd;
-const char *obe_server_ip = "127.0.0.1";  //"192.168.3.40"; //
+const char *obe_server_ip = "192.168.3.40"; //"127.0.0.1";  //
 int obe_port = 6785;
 int connection_status;
 
