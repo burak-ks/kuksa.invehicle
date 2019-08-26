@@ -2,12 +2,18 @@
 #include "common.hpp"
 
 int sockfd;
-const char *obe_server_ip = "192.168.3.40"; //"127.0.0.1";  //
-int obe_port = 6789;
+const char *obe_server_ip = "127.0.0.1";  //"192.168.3.40"; //
+int obe_port = 6785;
 int connection_status;
+
+pthread_mutex_t deque_mutex;
+deque<string> obe_deque;
+
 
 e_result obe_client_init() {
   pthread_t obe_thread;
+  pthread_t obe_queue_thread;
+
 
   struct sockaddr_in serv_addr;
 
@@ -32,10 +38,25 @@ e_result obe_client_init() {
   }
   printf("Connected to server\n");
 
-  if (pthread_create(&obe_thread, NULL, obe_listen, (void *)1) != 0) {
-    perror("vcan_read thread creation failure !");
+
+
+  if (pthread_create(&obe_queue_thread, NULL, parse_obe_queue, (void *)1) != 0) {
+    perror("obe_queue_thread thread creation failure !");
     return FAILURE;
+  }else{
+      printf("obe_queue_thread created\n");
   }
+
+
+  if (pthread_create(&obe_thread, NULL, obe_listen, (void *)1) != 0) {
+    perror("obe_thread thread creation failure !");
+    return FAILURE;
+  }else{
+    printf("obe_thread created\n");
+
+  }
+
+
 
   return SUCCESS;
 }
@@ -69,6 +90,7 @@ e_result obe_client_connect() {
 
 void *obe_listen(void *notused) {
   char buffer[BUFFER_SIZE] = {};
+  char temp_buffer[BUFFER_SIZE] = {};
 
   int counter = 1;
   while (1) {
@@ -91,10 +113,13 @@ void *obe_listen(void *notused) {
       printf("Disconnected from daa_obe server \n");
       connection_status = -1;
     } else {
-      // printf("daa_obe: %s\n", buffer);
+      //printf("daa_obe: %s\n", buffer);
 
       // handle msg
-      parse_buffer(buffer);
+      pthread_mutex_lock(&deque_mutex);
+      string bufferstr(buffer);
+      obe_deque.push_back(bufferstr);
+      pthread_mutex_unlock(&deque_mutex);
 
       memset(&buffer, '\0', sizeof(buffer));
 
@@ -145,14 +170,15 @@ char *prepare_outgoing_msg(char *daa_msg, struct can_frame *frame) {
   return daa_msg;
 }
 
-void handle_incoming_msg(char *daa_msg) {
+void handle_incoming_msg(char *framestr) {
+
   const char *delimiter = "|";
   struct can_frame frame;
 
-  char *tempstr = strdup(daa_msg);
+  char *tempstr = strdup(framestr);
 
   frame.can_id = strtol(strsep(&tempstr, delimiter), NULL, 16);
-  frame.can_dlc = strtol(strsep(&tempstr, delimiter), NULL, 16);
+  frame.can_dlc = 8;
   frame.data[0] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[1] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[2] = strtol(strsep(&tempstr, delimiter), NULL, 16);
@@ -161,13 +187,14 @@ void handle_incoming_msg(char *daa_msg) {
   frame.data[5] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[6] = strtol(strsep(&tempstr, delimiter), NULL, 16);
   frame.data[7] = strtol(strsep(&tempstr, delimiter), NULL, 16);
-  static int counter = 1;
-  //printf("handle inc: %i\n", counter++);
-  // check which vcans have read permissions
-  dbmanager db;
-  vector<string> vcan_list =
-      db.select_vcans_from_read_table(frame.can_id & 0x1FFFFFFF);
-  //for (string vcan : vcan_list) {
+
+
+    //printf("handle inc: %i\n", counter++);
+    // check which vcans have read permissions
+    //  dbmanager db;
+    //  vector<string> vcan_list =
+    //      db.select_vcans_from_read_table(frame.can_id & 0x1FFFFFFF);
+    //for (string vcan : vcan_list) {
     // write to vcan;
     // cout << "write to vcan: " << vcan << endl;
     // vcanlistener listener(vcan);
@@ -175,37 +202,65 @@ void handle_incoming_msg(char *daa_msg) {
     // listener.vcan_write_frame(&frame);
 
     vcanwriter::vcan_write_frame("vcanh0", &frame);
+    usleep(1000);
+
   //}
 }
 
-void parse_buffer(char *msg) {
-  int i = 0;
+void handle_incoming_msgs(string daa_msgs) {
+
+  const char *delimiter = ",";
+  char *framestr;
+  char *tempstr = strdup(daa_msgs.c_str());
+
+  while( (framestr = strsep(&tempstr,delimiter)) != NULL ){
+    handle_incoming_msg(framestr);
+  }
+}
+void *parse_obe_queue(void *notused){
+
+    string buffer;
+
+    while(1){
+        //printf("s %i\n",  obe_deque.size());
+
+        if(obe_deque.empty() == 0){
+
+            pthread_mutex_lock(&deque_mutex);
+            buffer = obe_deque.front();
+            obe_deque.pop_front();
+            pthread_mutex_unlock(&deque_mutex);
+
+            printf("b %i\n", buffer.size());
+            parse_buffer(buffer);
+
+        }
+        usleep(100);
+    }
+
+}
+
+
+void parse_buffer(string buffer) {
+
   size_t sindex = -1;
   size_t eindex = -1;
-  char daa_msg[BUFFER_SIZE];
+
 
   // locate msg start-endpoints
-  while (msg[i] != '\0') {
-    if (msg[i] == '{') sindex = i + 1;
+  sindex = buffer.find_first_of("{");
+  eindex = buffer.find_first_of("}");
 
-    if (msg[i] == '}') {
-      eindex = i;
-      break;
-    }
-    i++;
-  }
 
   // check endpoints
-  if (sindex > 0 && eindex > 2) {
-    memcpy(daa_msg, &msg[sindex], eindex - sindex);
-    daa_msg[eindex - 1] = '\0';
+  if (sindex >= 0 && eindex > 2) {
 
-    handle_incoming_msg(daa_msg);
+    string daa_msgs = buffer.substr(sindex+1, eindex-sindex-1);
 
-    daa_msg[0] = '\0';
+    handle_incoming_msgs(daa_msgs);
 
-    if (eindex + 1 != strlen(msg))
-      parse_buffer(&msg[eindex + 1]);
+    if (eindex + 1 != buffer.size())
+      parse_buffer(buffer.substr(eindex+1));
     else {
       // printf("...\n");
       return;
@@ -215,3 +270,31 @@ void parse_buffer(char *msg) {
     return;
   }
 }
+
+int ma23in(){
+
+//    size_t sindex = -1;
+//    size_t eindex = -1;
+
+
+    string buffer = "{18f0090b|8|9d|7a|7f|77|7b|fe|fe|99}{18f0090b|8|9d|7a|7f|77|7b|fe|fe|99}{18fef200|8|d0|2|e7|1|9f|3|fa|ff,cf00300|8|d4|fa|64|ff|ff|f|d0|84}";
+    // "{cf00300|8|d4|fa|64|ff|ff|f|d0|84}"
+   //                             "{cf00400|8|18|e1|d0|e6|3a|0|f|d0}"
+   //                             "{18fef200|8|d0|2|e7|1|9f|3|fa|ff}"
+   //                             "{18f0090b|8|d7|7a|7f|8b|7b|fe|fe|86}"
+   //                             "{cf00400|8|28|e1|d0|2d|3b|0|f|d0}"
+   //                             "{cf00a00|8|4e|2|b7|2f|ff|ff|ff|ff}"
+   //                             "{18f0090b|8|f5|7a|7f|93|7b|fe|fe|86}"
+   //                             "{18f0010b|8|0|0|c3|ff|ff|1|b|ff}"
+   //                             "{cf00400|8|28|e1|d0|52|3b|0|f|d0}"
+   //                             "{18f00010|8|0|7d|7d|f3|10|ff|0|2b}"
+//    sindex = buffer.find_first_of("{");
+//    eindex = buffer.find_first_of("}");
+
+//    string daa_msgs = buffer.substr(sindex+1, eindex-sindex-1);
+//    printf("%s\n",  daa_msgs.c_str());
+
+    parse_buffer(buffer);
+
+}
+

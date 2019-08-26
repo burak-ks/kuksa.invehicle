@@ -218,14 +218,13 @@ void vcanhandler::start_all_listeners() {
 
   // check if these vcan busses are created, if not create them
   // then start a listener thread for each
- /*/for (string vcan : vcan_list) {
+  for (string vcan : vcan_list) {
     if (vcanExists(vcan) == false) {
       createVcan(vcan);
     }
     start_vcan_listener(vcan);
     sleep(1);
-  }*/
-  start_vcan_listener("vcana0");
+  }
 }
 
 vcanwriter::vcanwriter() {}
@@ -280,7 +279,7 @@ void vcanwriter::vcan_write_frame(string vcan_name, struct can_frame *frame) {
     printf("Failed to write to vcan bus = %s \n", vcan_name.c_str());
   else {
     // printf("Frame sent to vcan bus = %s \n", vcan_name.c_str());
-    //printf("v %i\n", counter++);
+    printf("v %i\n", counter++);
   }
 }
 

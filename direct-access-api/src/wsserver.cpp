@@ -206,7 +206,7 @@ void *startWSServer(void *arg) { wserver->startServer(""); }
  */
 int main(int argc, char *argv[]) {
   cout << "Starting Direct-Access-Api app... [v20190403]" << endl;
-  /*wsserver server(PORT, false);
+ /* wsserver server(PORT, false);
 
   pthread_t startWSServer_thread;
 
